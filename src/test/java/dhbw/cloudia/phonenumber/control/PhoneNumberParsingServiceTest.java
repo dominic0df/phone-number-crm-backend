@@ -2,6 +2,7 @@ package dhbw.cloudia.phonenumber.control;
 
 import dhbw.cloudia.phonenumber.boundary.dto.PhoneNumberInputTO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,7 +11,7 @@ class PhoneNumberParsingServiceTest {
 
     private PhoneNumberParsingService phoneNumberParsingService;
 
-    @BeforeAll
+    @BeforeEach
     void init(){
         this.phoneNumberParsingService = new PhoneNumberParsingService();
     }
@@ -22,7 +23,7 @@ class PhoneNumberParsingServiceTest {
     @Test
     void getPrefixWithoutBracketsCorrectlyPlus(){
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 0201 123456").build();
-        String expectedPrefix = "+49";
+        String expectedPrefix = "49";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPrefixNumber();
         assertEquals(expectedPrefix, actualPrefix);
@@ -30,8 +31,8 @@ class PhoneNumberParsingServiceTest {
 
     @Test
     void getPrefixWithoutBracketsCorrectly(){
-        PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("0049 0201 123456").build();
-        String expectedPrefix = "0049";
+        PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 0201 123456").build();
+        String expectedPrefix = "49";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPrefixNumber();
         assertEquals(expectedPrefix, actualPrefix);
@@ -40,7 +41,7 @@ class PhoneNumberParsingServiceTest {
     @Test
     void getPrefixWithoutBracketsCorrectlyPlusAndBrackets(){
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("(+49) 0201 123456").build();
-        String expectedPrefix = "(+49)";
+        String expectedPrefix = "49";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPrefixNumber();
         assertEquals(expectedPrefix, actualPrefix);
@@ -48,8 +49,8 @@ class PhoneNumberParsingServiceTest {
 
     @Test
     void getPrefixWithoutBracketsCorrectlyBrackets(){
-        PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("(0049) 0201 123456").build();
-        String expectedPrefix = "(0049)";
+        PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("(+49) 0201 123456").build();
+        String expectedPrefix = "49";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPrefixNumber();
         assertEquals(expectedPrefix, actualPrefix);
@@ -76,7 +77,7 @@ class PhoneNumberParsingServiceTest {
     @Test
     void getAreaCodeFiveDigitsZero(){
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 02013123456").build();
-        String expectedPrefix = "02013";
+        String expectedPrefix = "0201";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
         assertEquals(expectedPrefix, actualPrefix);
@@ -114,7 +115,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 1234-456").build();
         String expectedPrefix = "456";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneExtension();
         assertEquals(expectedPrefix, actualPrefix);
     }
 
@@ -123,7 +124,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 1234-45").build();
         String expectedPrefix = "45";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneExtension();
         assertEquals(expectedPrefix, actualPrefix);
     }
 
@@ -132,7 +133,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 1234-4").build();
         String expectedPrefix = "4";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneExtension();
         assertEquals(expectedPrefix, actualPrefix);
     }
 
@@ -141,7 +142,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 1234/4").build();
         String expectedPrefix = "4";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneExtension();
         assertEquals(expectedPrefix, actualPrefix);
     }
 
@@ -150,7 +151,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 1234 4").build();
         String expectedPrefix = "4";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneExtension();
         assertEquals(expectedPrefix, actualPrefix);
     }
 }

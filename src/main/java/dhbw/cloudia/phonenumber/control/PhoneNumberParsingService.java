@@ -3,12 +3,10 @@ package dhbw.cloudia.phonenumber.control;
 import dhbw.cloudia.phonenumber.boundary.dto.PhoneNumberInputTO;
 import dhbw.cloudia.phonenumber.boundary.dto.PhoneNumberOutputTO;
 import dhbw.cloudia.phonenumber.control.exception.PhoneNumberParseException;
-import dhbw.cloudia.phonenumber.control.helper.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
@@ -31,17 +29,100 @@ public class PhoneNumberParsingService {
                     EXTENSION_PATTERN.pattern(),
             Pattern.CASE_INSENSITIVE);
     public static final String COUNTRY_PREFIX_IDENTIFICATOR = "+";
+    private static final String GERMAN_PREFIX = "49";
 
     public PhoneNumberOutputTO parsePhoneNumber(PhoneNumberInputTO phoneNumberInputTO) {
         PhoneNumberOutputTO phoneNumberOutputTO = new PhoneNumberOutputTO();
         String phoneNumber = phoneNumberInputTO.getPhoneNumberString().trim();
-        boolean hasCountryPrefix = phoneNumber.startsWith(COUNTRY_PREFIX_IDENTIFICATOR);
-        if (hasCountryPrefix) {
-            phoneNumberOutputTO.setPrefixNumber(phoneNumber.substring(0, 3));
-            phoneNumber = phoneNumber.substring(4, phoneNumber.length() - 1);
+        boolean hasCountryPrefix;
+        if (phoneNumber.matches("^(\\[\\+[0-9]{2}].*)|(\\Q(\\E\\+[0-9]{2}\\Q)\\E.*)$")) {
+            phoneNumberOutputTO.setPrefixNumber(phoneNumber.substring(2, 4));
+            phoneNumber = phoneNumber.substring(5).trim();
+            hasCountryPrefix = true;
+        } else if (phoneNumber.matches("^\\+[0-9]{2}.*$")){
+            phoneNumberOutputTO.setPrefixNumber(phoneNumber.substring(1, 3));
+            phoneNumber = phoneNumber.substring(3).trim();
+            hasCountryPrefix = true;
+        } else {
+            phoneNumberOutputTO.setPrefixNumber(GERMAN_PREFIX);
+            hasCountryPrefix = false;
         }
-        return null;
+//        if (hasCountryPrefix) {
+//            phoneNumberOutputTO.setPrefixNumber(phoneNumber.substring(0, 3));
+//            phoneNumber = phoneNumber.substring(3).trim();
+//        } else {
+//            phoneNumberOutputTO.setPrefixNumber(GERMAN_PREFIX);
+//        }
+        String[] splittedNumber = phoneNumber.split("-|/|[ ]+");
+        if (splittedNumber.length > 3) {
+            String[] newSplittedNumber = new String[1];
+            if (splittedNumber[splittedNumber.length-1].length() <= 3) {
+                phoneNumberOutputTO.setPhoneExtension(splittedNumber[splittedNumber.length-1]);
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < splittedNumber.length-1; i++) {
+                    stringBuilder.append(splittedNumber[i]);
+                }
+                newSplittedNumber[0] = stringBuilder.toString();
+            } else {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (String s : splittedNumber) {
+                    stringBuilder.append(s);
+                }
+                newSplittedNumber[0] = stringBuilder.toString();
+            }
+            splittedNumber = newSplittedNumber;
+        }
+
+        if (splittedNumber.length == 3) {
+            phoneNumberOutputTO.setAreaCode(removeBrackets(splittedNumber[0]));
+            phoneNumberOutputTO.setPhoneNumber(removeBrackets(splittedNumber[1]));
+            checkAndSetPhoneExtension(phoneNumberOutputTO, removeBrackets(splittedNumber[2]));
+            return phoneNumberOutputTO;
+        } else if (splittedNumber.length == 2) {
+            extractAreaCodeAndSetPhoneNumber(phoneNumberOutputTO, splittedNumber[0], hasCountryPrefix);
+            checkAndSetPhoneExtension(phoneNumberOutputTO, removeBrackets(splittedNumber[1]));
+        } else if (splittedNumber.length == 1) {
+            extractAreaCodeAndSetPhoneNumber(phoneNumberOutputTO, splittedNumber[0], hasCountryPrefix);
+        } else {
+            throw new PhoneNumberParseException("Too many separation characters");
+        }
+        return phoneNumberOutputTO;
     }
+
+    private void extractAreaCodeAndSetPhoneNumber(PhoneNumberOutputTO phoneNumberOutputTO, String numberString, boolean hasCountryPrefix) {
+        if (numberString.contains(")")) {
+            int areaCodeIndex = numberString.indexOf(")");
+            phoneNumberOutputTO.setAreaCode(removeBrackets(numberString.substring(1, areaCodeIndex)));
+            phoneNumberOutputTO.setPhoneNumber(numberString.substring(areaCodeIndex+1));
+        } else {
+            if (hasCountryPrefix) {
+                phoneNumberOutputTO.setAreaCode(numberString.substring(0, 4));
+                phoneNumberOutputTO.setPhoneNumber(numberString.substring(4));
+            } else {
+                phoneNumberOutputTO.setAreaCode(numberString.substring(0, 5));
+                phoneNumberOutputTO.setPhoneNumber(numberString.substring(5));
+            }
+        }
+    }
+
+    private void checkAndSetPhoneExtension(PhoneNumberOutputTO phoneNumberOutputTO, String possibleExtension) {
+        if (possibleExtension.length() <= 3) {
+            phoneNumberOutputTO.setPhoneExtension(possibleExtension);
+        } else {
+            phoneNumberOutputTO.setPhoneNumber(phoneNumberOutputTO.getPhoneNumber() + possibleExtension);
+        }
+    }
+
+    private String removeBrackets(String number) {
+        if ((number.startsWith("(") && number.endsWith(")")) || (number.startsWith("[") && number.endsWith("]"))) {
+            return number.substring(1, number.length()-1);
+        } else if ((!number.startsWith("(") && !number.endsWith(")")) || (!number.startsWith("[") && !number.endsWith("]"))) {
+           return number;
+        } else {
+            throw new PhoneNumberParseException("Flawed bracketed number");
+        }
+    }
+
 //        String phoneNumber = phoneNumberInputTO.getPhoneNumberString().trim();
 //        isPhoneNumberValid(phoneNumber);
 //        PhoneNumberOutputTO phoneNumberOutputTO = PhoneNumberOutputTO.builder().build();
@@ -59,7 +140,7 @@ public class PhoneNumberParsingService {
 //        matcher = AREA_CODE_PATTERN.matcher(phoneNumber);
 //        boolean areaCodeFound = matcher.find();
 //        if (areaCodeFound) {
-//            phoneNumberOutputTO.setAreaCode(phoneNumber.split(AREA_CODE_PATTERN.pattern())[0]);
+//            phoneNumberOutputTO.parseAreaCode(phoneNumber.split(AREA_CODE_PATTERN.pattern())[0]);
 //            phoneNumber = phoneNumber.replaceFirst(AREA_CODE_PATTERN.pattern(), "");
 //        } else {
 //            throw new PhoneNumberParseException("area code of phone number could not be parsed: " + phoneNumber);
