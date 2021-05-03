@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * phone number output TO holding phone number parts
+ */
 @Data
 @NoArgsConstructor
 @Builder

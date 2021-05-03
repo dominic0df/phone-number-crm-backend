@@ -59,7 +59,7 @@ class PhoneNumberParsingServiceTest {
     @Test
     void getAreaCodeThreeDigitsNoZero(){
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49201 123456").build();
-        String expectedPrefix = "201";
+        String expectedPrefix = "0201";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
         assertEquals(expectedPrefix, actualPrefix);
@@ -95,7 +95,7 @@ class PhoneNumberParsingServiceTest {
     @Test
     void getAreaCodeThreeDigitsZero(){
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 123456").build();
-        String expectedPrefix = "023";
+        String expectedPrefix = "0023";
 
         String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
         assertEquals(expectedPrefix, actualPrefix);
@@ -106,7 +106,7 @@ class PhoneNumberParsingServiceTest {
         PhoneNumberInputTO phoneNumberInputTO = PhoneNumberInputTO.builder().phoneNumberString("+49 023 123456").build();
         String expectedPrefix = "123456";
 
-        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getAreaCode();
+        String actualPrefix = this.phoneNumberParsingService.parsePhoneNumber(phoneNumberInputTO).getPhoneNumber();
         assertEquals(expectedPrefix, actualPrefix);
     }
 

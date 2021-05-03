@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Phone number input TO holding number as String and default country code
+ */
 @Builder
 @Data
 @NoArgsConstructor
